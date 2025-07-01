@@ -1,0 +1,111 @@
+log:
+  stdout: true
+  level: info
+
+persistence:
+  defaultStore: default
+  visibilityStore: visibility
+  numHistoryShards: 4
+  datastores:
+    default:
+      sql:
+        pluginName: "mysql8"
+        databaseName: "temporal"
+        connectAddr: "mysql:3306"
+        connectProtocol: "tcp"
+        user: "temporal"
+        password: "temporal"
+        maxConns: 20
+        maxIdleConns: 20
+        maxConnLifetime: "1h"
+        tls:
+          enabled: false
+    visibility:
+      sql:
+        pluginName: "mysql8"
+        databaseName: "temporal_visibility"
+        connectAddr: "mysql:3306"
+        connectProtocol: "tcp"
+        user: "temporal"
+        password: "temporal"
+        maxConns: 20
+        maxIdleConns: 20
+        maxConnLifetime: "1h"
+        tls:
+          enabled: false
+
+global:
+  membership:
+    maxJoinDuration: 30s
+    broadcastAddress: "0.0.0.0"
+  pprof:
+    port: 7936
+
+services:
+  frontend:
+    rpc:
+      grpcPort: 7233
+      bindOnIP: "0.0.0.0"
+    metrics:
+      statsd:
+        hostPort: "127.0.0.1:8125"
+        prefix: "temporal"
+
+  matching:
+    rpc:
+      grpcPort: 7235
+      bindOnIP: "0.0.0.0"
+    metrics:
+      statsd:
+        hostPort: "127.0.0.1:8125"
+        prefix: "temporal"
+
+  history:
+    rpc:
+      grpcPort: 7234
+      bindOnIP: "0.0.0.0"
+    metrics:
+      statsd:
+        hostPort: "127.0.0.1:8125"
+        prefix: "temporal"
+
+  worker:
+    rpc:
+      grpcPort: 7239
+      bindOnIP: "0.0.0.0"
+    metrics:
+      statsd:
+        hostPort: "127.0.0.1:8125"
+        prefix: "temporal"
+
+archival:
+  history:
+    state: "enabled"
+    enableRead: true
+    provider:
+      filestore:
+        fileMode: "0666"
+        dirMode: "0766"
+  visibility:
+    state: "enabled"
+    enableRead: true
+    provider:
+      filestore:
+        fileMode: "0666"
+        dirMode: "0766"
+
+publicClient:
+  hostPort: "frontend:7233"
+
+namespaceDefaults:
+  archival:
+    history:
+      state: "enabled"
+      URI: "file:///tmp/temporal_archival/development"
+    visibility:
+      state: "enabled"
+      URI: "file:///tmp/temporal_vis_archival/development"
+
+dynamicConfigClient:
+  filepath: "/etc/temporal/config/dynamicconfig/development.yaml"
+  pollInterval: "10s"

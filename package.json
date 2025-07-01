@@ -1,0 +1,60 @@
+{
+    "name": "temporalio-cluster-cdk",
+    "version": "1.0.0",
+    "description": "CDK construct for deploying Temporal clusters on AWS ECS with Aurora MySQL",
+    "license": "MIT",
+    "main": "dist/index",
+    "homepage": "https://github.com/your-org/temporalio-cluster-cdk#readme",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/your-org/temporalio-cluster-cdk.git"
+    },
+    "bugs": {
+        "url": "https://github.com/your-org/temporalio-cluster-cdk/issues"
+    },
+    "scripts": {
+        "clean": "rimraf dist/",
+        "build": "yarn build:ts && yarn build:copyfiles",
+        "build:ts": "tsc",
+        "build:copyfiles": "mkdir -p dist/customResources/temporal/adminToolsLayer && cp lib/customResources/temporal/adminToolsLayer/Dockerfile dist/customResources/temporal/adminToolsLayer/",
+        "develop": "concurrently \"yarn:develop:ts\" \"yarn:develop:copyfiles\"",
+        "develop:ts": "tsc --watch",
+        "develop:copyfiles": "mkdir -p dist/customResources/temporal/adminToolsLayer && cp lib/customResources/temporal/adminToolsLayer/Dockerfile dist/customResources/temporal/adminToolsLayer/",
+        "lint": "yarn eslint . --ext .ts",
+        "format": "yarn prettier --write \"./**/*.{ts,json}\""
+    },
+    "dependencies": {
+        "aws-sdk": "^2.1692.0",
+        "lodash": "^4.17.21",
+        "nopt": "^5.0.0",
+        "ts-loader": "^9.5.2",
+        "wait-port": "^0.2.14",
+        "webpack": "^5.99.9",
+        "yaml": "^1.10.2"
+    },
+    "devDependencies": {
+        "@types/aws-lambda": "^8.10.150",
+        "@types/lodash": "^4.17.19",
+        "@types/node": "^20.19.2",
+        "@types/nopt": "^3.0.32",
+        "@typescript-eslint/eslint-plugin": "^5.62.0",
+        "@typescript-eslint/parser": "^5.62.0",
+        "aws-cdk-lib": "^2.202.0",
+        "colors": "^1.4.0",
+        "concurrently": "^7.6.0",
+        "constructs": "^10.4.2",
+        "esbuild": "^0.14.54",
+        "eslint": "^8.57.1",
+        "eslint-config-prettier": "^8.10.0",
+        "prettier": "^2.8.8",
+        "rimraf": "^3.0.2",
+        "typescript": "^5.8.3"
+    },
+    "peerDependencies": {
+        "aws-cdk-lib": "^2.202.0",
+        "constructs": "^10.4.2"
+    },
+    "files": [
+        "dist/"
+    ]
+}

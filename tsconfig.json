@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "rootDir": "./lib",
+        "outDir": "./dist",
+        "allowJs": false,
+        "target": "ES2020",
+        "module": "CommonJS",
+        "moduleResolution": "node",
+        "declaration": true,
+        "sourceMap": true,
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "strict": false,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true
+    },
+    "include": ["./lib/**/*.ts", "./lib/**/Dockerfile"],
+    "exclude": ["**/node_modules", "./dist/**/*"]
+}

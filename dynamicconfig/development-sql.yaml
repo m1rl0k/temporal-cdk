@@ -1,0 +1,37 @@
+# Dynamic configuration for Temporal development with SQL database
+# This file contains runtime configuration that can be changed without restarting the server
+
+# System configuration
+system.enableNamespaceNotActiveAutoForwarding:
+  - value: true
+    constraints: {}
+
+# Frontend configuration  
+frontend.enableClientVersionCheck:
+  - value: true
+    constraints: {}
+
+# History configuration
+history.maxAutoResetPoints:
+  - value: 20
+    constraints: {}
+
+# Matching configuration
+matching.numTaskQueueWritePartitions:
+  - value: 4
+    constraints: {}
+
+# Worker configuration
+worker.enableLogging:
+  - value: true
+    constraints: {}
+
+# Limit configuration for development
+limit.maxIDLength:
+  - value: 255
+    constraints: {}
+
+# Search attributes cache refresh for development
+system.forceSearchAttributesCacheRefreshOnRead:
+  - value: true
+    constraints: {}

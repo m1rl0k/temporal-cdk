@@ -1,0 +1,27 @@
+# Dynamic configuration for Temporal development environment
+# This file contains runtime configuration that can be changed without restarting the server
+
+# Frontend service configuration
+frontend.enableClientVersionCheck:
+  - value: true
+    constraints: {}
+
+# History service configuration  
+history.maxAutoResetPoints:
+  - value: 20
+    constraints: {}
+
+# Matching service configuration
+matching.numTaskqueueWritePartitions:
+  - value: 4
+    constraints: {}
+
+# Worker service configuration
+worker.enableLogging:
+  - value: true
+    constraints: {}
+
+# System configuration
+system.enableNamespaceNotActiveAutoForwarding:
+  - value: true
+    constraints: {}
