@@ -10,7 +10,7 @@ Temporal Web UI supports OIDC authentication, which allows integration with Micr
 
 - Azure AD tenant with admin access
 - Temporal Web UI deployed and accessible
-- Domain name for your Temporal Web UI (e.g., `temporal.yourdomain.com`)
+- Domain name for your Temporal Web UI (e.g., `temporal.example.com`)
 
 ## Azure AD Setup
 
@@ -22,7 +22,7 @@ Temporal Web UI supports OIDC authentication, which allows integration with Micr
 4. Configure:
    - **Name**: `Temporal Web UI`
    - **Supported account types**: Choose based on your needs
-   - **Redirect URI**: `https://your-temporal-domain.com/auth/sso/callback`
+   - **Redirect URI**: `https://temporal.example.com/auth/sso/callback` (replace with your domain)
 
 ### 2. Configure Application Settings
 
@@ -84,7 +84,7 @@ const baseWebConfiguration = {
                 issuerUrl: "https://login.microsoftonline.com/{tenant-id}/v2.0",
                 clientId: "{your-application-client-id}",
                 clientSecret: "{your-application-client-secret}",
-                callbackUrl: "https://your-temporal-domain.com/auth/sso/callback",
+                callbackUrl: "https://temporal.example.com/auth/sso/callback", // Replace with your domain
                 scopes: ["openid", "profile", "email", "offline_access"]
             }
         ]
@@ -135,7 +135,7 @@ environment: {
     TEMPORAL_AUTH_ISSUER_URL: `https://login.microsoftonline.com/${tenantId}/v2.0`,
     TEMPORAL_AUTH_CLIENT_ID: clientId,
     TEMPORAL_AUTH_CLIENT_SECRET: clientSecret,
-    TEMPORAL_AUTH_CALLBACK_URL: 'https://your-temporal-domain.com/auth/sso/callback',
+    TEMPORAL_AUTH_CALLBACK_URL: 'https://temporal.example.com/auth/sso/callback', // Replace with your domain
     TEMPORAL_AUTH_SCOPES: 'openid,profile,email,offline_access',
 }
 ```
