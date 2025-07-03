@@ -2,7 +2,7 @@ import { TemporalCluster } from '..';
 import { BaseTemporalService, IBaseTemporalServiceProps } from './BaseService';
 
 export class SingleService extends BaseTemporalService {
-    constructor(cluster: TemporalCluster, props: Pick<IBaseTemporalServiceProps, 'machine' | 'customSubnets' | 'securityGroups'>) {
+    constructor(cluster: TemporalCluster, props: Pick<IBaseTemporalServiceProps, 'machine' | 'customSubnets' | 'securityGroups' | 'desiredCount'>) {
         // const clusterProps: ITemporalClusterProps;
 
         super(cluster, 'Single', {
@@ -10,9 +10,14 @@ export class SingleService extends BaseTemporalService {
             machine: props.machine,
             customSubnets: props.customSubnets,
             securityGroups: props.securityGroups,
+            desiredCount: props.desiredCount || 2, // Increase to 3 tasks for better system worker capacity
             environment: {
                 SERVICES: 'frontend:history:matching:worker',
                 ...cluster.temporalConfig.toEnvironmentVariables(),
+                // Worker Versioning is now enabled via dynamic configuration
+                // System worker configuration to fix "Not enough hosts" errors
+                TEMPORAL_SYSTEM_WORKER_ENABLED: 'true',
+                TEMPORAL_SYSTEM_WORKER_CONCURRENCY: '1000',
             },
             secrets: {
                 ...cluster.temporalConfig.toSecrets(),
@@ -53,6 +58,7 @@ export class FrontendService extends BaseTemporalService {
             environment: {
                 SERVICES: 'frontend',
                 ...cluster.temporalConfig.toEnvironmentVariables(),
+                // Worker Versioning is now enabled via dynamic configuration
             },
             secrets: {
                 ...cluster.temporalConfig.toSecrets(),

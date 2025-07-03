@@ -149,9 +149,9 @@ export class TemporalCluster extends Construct implements IConnectable {
         // The Lambda function now creates both 'temporal' and 'temporal_visibility' databases
         // in a single execution to avoid timing and dependency issues
 
-        // Import security groups for services
-        this.vpnSecurityGroup = SecurityGroup.fromSecurityGroupId(this, 'VpnSecurityGroup', 'sg-xxxxxxxx'); // Replace with your VPN security group
-        const webSecurityGroup = SecurityGroup.fromSecurityGroupId(this, 'WebSecurityGroup', 'sg-yyyyyyyy'); // Replace with your web security group
+        // Import security groups for services - replace with your security group IDs
+        this.vpnSecurityGroup = SecurityGroup.fromSecurityGroupId(this, 'VpnSecurityGroup', 'sg-xxxxxxxx'); // Replace with your VPN security group ID
+        const webSecurityGroup = SecurityGroup.fromSecurityGroupId(this, 'WebSecurityGroup', 'sg-yyyyyyyy'); // Replace with your web security group ID
         const serviceSecurityGroups = [this.vpnSecurityGroup, webSecurityGroup];
 
         const [configEfs, configEfsFiles] = this.setupConfigFileSystem(clusterProps, this.temporalConfig);
@@ -161,36 +161,36 @@ export class TemporalCluster extends Construct implements IConnectable {
             // Use single service for all server components (frontend, history, matching, worker)
             single: new SingleService(this, {
                 machine: servicesProps.single.machine,
-                customSubnets: ['subnet-46f62e30'], // Development web private 2a
+                customSubnets: ['subnet-xxxxxxxx'], // Replace with your private subnet ID
                 securityGroups: serviceSecurityGroups
             }),
 
             // Keep web UI as separate service since temporalServer image doesn't include web UI
             web: servicesProps.web.enabled ? new WebService(this, {
                 machine: servicesProps.web.machine,
-                customSubnets: ['subnet-46f62e30'], // Development web private 2a
+                customSubnets: ['subnet-xxxxxxxx'], // Replace with your private subnet ID
                 securityGroups: serviceSecurityGroups
             }) : undefined,
 
             // Disable individual server services when using single mode
             // frontend: new FrontendService(this, {
             //     machine: servicesProps.frontend.machine,
-            //     customSubnets: ['subnet-46f62e30'], // Development web private 2a
+            //     customSubnets: ['subnet-xxxxxxxx'], // Replace with your private subnet ID
             //     securityGroups: serviceSecurityGroups
             // }),
             // matching: new MatchingService(this, {
             //     machine: servicesProps.matching.machine,
-            //     customSubnets: ['subnet-46f62e30'], // Development web private 2a
+            //     customSubnets: ['subnet-xxxxxxxx'], // Replace with your private subnet ID
             //     securityGroups: serviceSecurityGroups
             // }),
             // history: new HistoryService(this, {
             //     machine: servicesProps.history.machine,
-            //     customSubnets: ['subnet-46f62e30'], // Development web private 2a
+            //     customSubnets: ['subnet-xxxxxxxx'], // Replace with your private subnet ID
             //     securityGroups: serviceSecurityGroups
             // }),
             // worker: new WorkerService(this, {
             //     machine: servicesProps.worker.machine,
-            //     customSubnets: ['subnet-46f62e30'], // Development web private 2a
+            //     customSubnets: ['subnet-xxxxxxxx'], // Replace with your private subnet ID
             //     securityGroups: serviceSecurityGroups
             // }),
         };
@@ -297,8 +297,8 @@ export class TemporalCluster extends Construct implements IConnectable {
         const efsVpcEndpoint = new InterfaceVpcEndpoint(this, 'EfsVpcEndpoint', {
             vpc: props.vpc,
             service: InterfaceVpcEndpointAwsService.ELASTIC_FILESYSTEM,
-            subnets: { subnets: [Subnet.fromSubnetId(this, 'EfsEndpointSubnet', 'subnet-46f62e30')] },
-            securityGroups: [SecurityGroup.fromSecurityGroupId(this, 'EfsEndpointSG', 'sg-f2cc8695')],
+            subnets: { subnets: [Subnet.fromSubnetId(this, 'EfsEndpointSubnet', 'subnet-xxxxxxxx')] }, // Replace with your subnet ID
+            securityGroups: [SecurityGroup.fromSecurityGroupId(this, 'EfsEndpointSG', 'sg-yyyyyyyy')], // Replace with your security group ID
             privateDnsEnabled: true,
         });
 
@@ -310,7 +310,7 @@ export class TemporalCluster extends Construct implements IConnectable {
 
         // Import ECS host security group to allow EFS access
         const ecsHostSecurityGroup = SecurityGroup.fromSecurityGroupId(
-            this, 'EcsHostSecurityGroup', 'sg-xxxxxxxx' // Replace with your ECS host security group
+            this, 'EcsHostSecurityGroup', 'sg-zzzzzzzz' // Replace with your ECS host security group ID
         );
 
         // VPN security group is already imported above for services
@@ -320,7 +320,7 @@ export class TemporalCluster extends Construct implements IConnectable {
         efsSecurityGroup.addIngressRule(this.vpnSecurityGroup, Port.tcp(2049));
 
         // Also allow access from web security group (used by ECS services)
-        const webSecurityGroupForEfs = SecurityGroup.fromSecurityGroupId(this, 'WebSecurityGroupForEfs', 'sg-yyyyyyyy'); // Replace with your web security group
+        const webSecurityGroupForEfs = SecurityGroup.fromSecurityGroupId(this, 'WebSecurityGroupForEfs', 'sg-yyyyyyyy'); // Replace with your web security group ID
         efsSecurityGroup.addIngressRule(webSecurityGroupForEfs, Port.tcp(2049));
 
         // Use low-level constructs to bypass CDK mount target subnet bug (#27397)
@@ -332,7 +332,7 @@ export class TemporalCluster extends Construct implements IConnectable {
         // Create mount target only in the subnet where services run
         const mountTarget = new CfnMountTarget(this, 'ConfigFSMountTarget1', {
             fileSystemId: cfnFileSystem.ref,
-            subnetId: 'subnet-46f62e30', // Development web private 2a - where all services run
+            subnetId: 'subnet-xxxxxxxx', // Replace with your private subnet ID where services run
             securityGroups: [efsSecurityGroup.securityGroupId],
         });
 

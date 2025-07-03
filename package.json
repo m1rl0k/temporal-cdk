@@ -1,7 +1,7 @@
 {
     "name": "temporalio-cluster-cdk",
     "version": "1.0.0",
-    "description": "CDK construct for deploying Temporal clusters on AWS ECS with Aurora MySQL",
+    "description": "CDK construct for deploying Temporal clusters on AWS ECS with Aurora PostgreSQL",
     "license": "MIT",
     "main": "dist/index",
     "homepage": "https://github.com/your-org/temporalio-cluster-cdk#readme",
@@ -24,6 +24,7 @@
         "format": "yarn prettier --write \"./**/*.{ts,json}\""
     },
     "dependencies": {
+        "@temporalio/client": "^1.12.0",
         "aws-sdk": "^2.1692.0",
         "lodash": "^4.17.21",
         "nopt": "^5.0.0",

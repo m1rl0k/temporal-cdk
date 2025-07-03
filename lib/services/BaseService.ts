@@ -46,6 +46,7 @@ export interface IBaseTemporalServiceProps {
     readonly exposedPorts: number[];
     readonly customSubnets?: string[]; // Optional custom subnet IDs
     readonly securityGroups?: ISecurityGroup[]; // Optional security groups
+    readonly desiredCount?: number; // Number of tasks to run (default: 1)
 }
 
 export abstract class BaseTemporalService extends Construct implements IConnectable {
@@ -120,16 +121,9 @@ export abstract class BaseTemporalService extends Construct implements IConnecta
         // Configure subnets - use custom subnets if provided, otherwise use default
         const vpcSubnets = props.customSubnets
             ? { subnets: props.customSubnets.map(subnetId => {
-                // For specific subnet configurations, you may need to provide subnet attributes
-                // This is an example for a specific subnet - update with your subnet details
-                if (subnetId === 'subnet-46f62e30') {
-                    return Subnet.fromSubnetAttributes(this, `CustomSubnet${subnetId.slice(-8)}`, {
-                        subnetId: subnetId,
-                        availabilityZone: 'us-west-2a',
-                        routeTableId: 'rtb-07bf02ab5a6ec3f2e'
-                    });
-                }
-                // Fallback for other subnets
+                // For specific subnet configurations, you can add subnet attributes
+                // Example: if (subnetId === 'subnet-xxxxxxxx') { ... }
+                // For now, use simple subnet import for all custom subnets
                 return Subnet.fromSubnetId(this, `CustomSubnet${subnetId.slice(-8)}`, subnetId);
             }) }
             : { onePerAz: true, subnetType: SubnetType.PRIVATE_WITH_NAT };
@@ -139,8 +133,8 @@ export abstract class BaseTemporalService extends Construct implements IConnecta
 
         // Use only the provided security groups (they already have VPC endpoint access)
         const securityGroupIds = props.securityGroups?.map(sg => sg.securityGroupId) || [
-            'sg-xxxxxxxx', // Your VPN security group (should have VPC endpoint access)
-            'sg-yyyyyyyy', // Your web security group (should have VPC endpoint access)
+            'sg-xxxxxxxx', // Replace with your VPN security group ID (has VPC endpoint access)
+            'sg-yyyyyyyy', // Replace with your web security group ID (has VPC endpoint access)
         ];
 
         // Create CfnService directly for full control (like dc.yml template)
@@ -149,6 +143,9 @@ export abstract class BaseTemporalService extends Construct implements IConnecta
             taskDefinition: this.taskDefinition.taskDefinitionArn,
             launchType: 'FARGATE',
             platformVersion: '1.4.0',
+
+            // Set desired count (default to 1 if not specified)
+            desiredCount: props.desiredCount || 1,
 
             // Configure deployment settings
             deploymentConfiguration: {
@@ -197,7 +194,7 @@ export abstract class BaseTemporalService extends Construct implements IConnecta
         // Check if this is an ECR image URI
         if (imageUri.includes('.amazonaws.com/')) {
             // Extract repository name from ECR URI
-            // Example: 202942626335.dkr.ecr.us-west-2.amazonaws.com/temporal/server:1.28
+            // Example: 123456789012.dkr.ecr.us-west-2.amazonaws.com/temporal/server:1.28
             // Extract: temporal/server
             const parts = imageUri.split('/');
             const repositoryName = parts.slice(1).join('/').split(':')[0]; // Get everything after domain, remove tag

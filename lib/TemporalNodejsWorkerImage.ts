@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import { AssetHashType, AssetStaging, DockerImage } from 'aws-cdk-lib';
-import { DockerImageAsset } from 'aws-cdk-lib/aws-ecr-assets';
+import { DockerImageAsset, Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
@@ -47,6 +47,7 @@ export class TemporalNodejsWorkerImage extends Construct {
 
         this.dockerImageAsset = new DockerImageAsset(this, 'ImageAsset', {
             directory: staging.absoluteStagedPath,
+            platform: Platform.LINUX_AMD64, // Force AMD64 architecture
             buildArgs: {
                 BUILD_IMAGE: `node:20-bullseye-slim`,
                 RUNTIME_IMAGE: `gcr.io/distroless/nodejs20-debian12`,
@@ -83,14 +84,50 @@ export class TemporalNodejsWorkerImage extends Construct {
             const dockerfile = this.generateDockerfile(props);
             fs.writeFileSync(Path.join(outputDir, 'Dockerfile'), dockerfile);
             
-            // Copy the entrypoint file
+            // Copy all TypeScript and JavaScript files from the source directory
+            const sourceDir = Path.dirname(props.entrypoint);
             const entrypointName = Path.basename(props.entrypoint);
-            fs.copyFileSync(props.entrypoint, Path.join(outputDir, entrypointName));
-            
-            // Copy package.json if it exists
-            const packageJsonPath = Path.join(Path.dirname(props.entrypoint), 'package.json');
+
+            // Copy all .ts and .js files and directories
+            const copyRecursively = (src: string, dest: string) => {
+                const stats = fs.statSync(src);
+                if (stats.isDirectory()) {
+                    if (!fs.existsSync(dest)) {
+                        fs.mkdirSync(dest, { recursive: true });
+                    }
+                    const files = fs.readdirSync(src);
+                    files.forEach(file => {
+                        copyRecursively(Path.join(src, file), Path.join(dest, file));
+                    });
+                } else if (src.endsWith('.ts') || src.endsWith('.js')) {
+                    fs.copyFileSync(src, dest);
+                }
+            };
+
+            const files = fs.readdirSync(sourceDir);
+            files.forEach(file => {
+                const sourcePath = Path.join(sourceDir, file);
+                const destPath = Path.join(outputDir, file);
+
+                if (fs.statSync(sourcePath).isDirectory()) {
+                    // Copy directories recursively
+                    copyRecursively(sourcePath, destPath);
+                } else if (file.endsWith('.ts') || file.endsWith('.js')) {
+                    // Copy individual files
+                    fs.copyFileSync(sourcePath, destPath);
+                }
+            });
+
+            // Copy package.json and tsconfig.json if they exist
+            const packageJsonPath = Path.join(sourceDir, 'package.json');
+            const tsconfigPath = Path.join(sourceDir, 'tsconfig.json');
+
             if (fs.existsSync(packageJsonPath)) {
                 fs.copyFileSync(packageJsonPath, Path.join(outputDir, 'package.json'));
+            }
+
+            if (fs.existsSync(tsconfigPath)) {
+                fs.copyFileSync(tsconfigPath, Path.join(outputDir, 'tsconfig.json'));
             } else {
                 // Create minimal package.json
                 const minimalPackageJson = {
@@ -122,35 +159,42 @@ export class TemporalNodejsWorkerImage extends Construct {
         return `
 # Build stage
 ARG BUILD_IMAGE=node:20-bullseye-slim
-FROM \${BUILD_IMAGE} AS builder
+FROM --platform=linux/amd64 \${BUILD_IMAGE} AS builder
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+COPY tsconfig.json* ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including TypeScript and ts-node)
+RUN npm install
 
-# Copy application code
-COPY ${entrypointName} ./
+# Copy all TypeScript and JavaScript files and directories
+COPY . ./
 
-# Runtime stage
-ARG RUNTIME_IMAGE=gcr.io/distroless/nodejs20-debian12
-FROM \${RUNTIME_IMAGE}
+# Runtime stage - use regular Node.js image for TypeScript support
+FROM --platform=linux/amd64 node:20-bullseye-slim
 
 WORKDIR /app
 
+# Install system dependencies for health checks
+RUN apt-get update && apt-get install -y procps && rm -rf /var/lib/apt/lists/*
+
+# Install ts-node globally for TypeScript runtime
+RUN npm install -g ts-node typescript
+
 # Copy from builder
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/${entrypointName} ./
+COPY --from=builder /app/ ./
 COPY --from=builder /app/package.json ./
+COPY --from=builder /app/tsconfig.json* ./
 
 # Set proper Node.js runtime
 ENV NODE_ENV=production
 
-# Run the worker
-CMD ["${entrypointName}"]
+# Run the TypeScript worker directly with ts-node
+CMD ["ts-node", "${entrypointName}"]
 `;
     }
 }

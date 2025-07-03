@@ -24,6 +24,9 @@ export class TemporalVersion {
     public static V1_16_1 = new TemporalVersion('1.16.1');
     public static V1_16_2 = new TemporalVersion('1.16.2');
 
+    public static V1_27_0 = new TemporalVersion('1.27.0');
+    public static V1_27_1 = new TemporalVersion('1.27.1');
+
     public static V1_28 = new TemporalVersion('1.28');
 
     public static LATEST = TemporalVersion.V1_28;

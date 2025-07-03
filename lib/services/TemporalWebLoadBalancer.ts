@@ -35,57 +35,57 @@ export class TemporalWebLoadBalancer extends Construct {
 
         // Import existing ALBs to get their DNS names for Route53 records
         const externalAlb = ApplicationLoadBalancer.fromApplicationLoadBalancerAttributes(this, 'ExternalALB', {
-            loadBalancerArn: 'arn:aws:elasticloadbalancing:us-west-2:202942626335:loadbalancer/app/devservices-alb/9f95dfdb0dbf157b',
-            loadBalancerDnsName: 'devservices-alb-651718053.us-west-2.elb.amazonaws.com',
-            loadBalancerCanonicalHostedZoneId: 'Z1H1FL5HABSF5', // Correct hosted zone ID for this ALB
-            securityGroupId: 'sg-0087ada887ff6ef64',
+            loadBalancerArn: 'arn:aws:elasticloadbalancing:us-west-2:123456789012:loadbalancer/app/external-alb/xxxxxxxxxxxxxxxx', // Replace with your external ALB ARN
+            loadBalancerDnsName: 'external-alb-xxxxxxxxx.us-west-2.elb.amazonaws.com', // Replace with your external ALB DNS name
+            loadBalancerCanonicalHostedZoneId: 'Z1H1FL5HABSF5', // Replace with your ALB hosted zone ID
+            securityGroupId: 'sg-xxxxxxxx', // Replace with your ALB security group ID
             vpc: props.vpc,
         });
 
         const internalAlb = ApplicationLoadBalancer.fromApplicationLoadBalancerAttributes(this, 'InternalALB', {
-            loadBalancerArn: 'arn:aws:elasticloadbalancing:us-west-2:202942626335:loadbalancer/app/devservices-alb-internal/bb5098cbe8411607',
-            loadBalancerDnsName: 'internal-devservices-alb-internal-304132837.us-west-2.elb.amazonaws.com',
-            loadBalancerCanonicalHostedZoneId: 'Z1H1FL5HABSF5', // Correct hosted zone ID for this ALB
-            securityGroupId: 'sg-0087ada887ff6ef64',
+            loadBalancerArn: 'arn:aws:elasticloadbalancing:us-west-2:123456789012:loadbalancer/app/internal-alb/yyyyyyyyyyyyyyyy', // Replace with your internal ALB ARN
+            loadBalancerDnsName: 'internal-alb-yyyyyyyyy.us-west-2.elb.amazonaws.com', // Replace with your internal ALB DNS name
+            loadBalancerCanonicalHostedZoneId: 'Z1H1FL5HABSF5', // Replace with your ALB hosted zone ID
+            securityGroupId: 'sg-xxxxxxxx', // Replace with your ALB security group ID
             vpc: props.vpc,
         });
 
         // Import ALB security group (both ALBs use the same security group)
-        const albSecurityGroup = SecurityGroup.fromSecurityGroupId(this, 'AlbSecurityGroup', 'sg-xxxxxxxx'); // Replace with your ALB security group
+        const albSecurityGroup = SecurityGroup.fromSecurityGroupId(this, 'AlbSecurityGroup', 'sg-xxxxxxxx'); // Replace with your ALB security group ID
 
         // Import existing HTTPS listeners by ARN
         const externalListener = ApplicationListener.fromApplicationListenerAttributes(this, 'ExternalListener', {
-            listenerArn: 'arn:aws:elasticloadbalancing:region:account:listener/app/your-alb/listener-id', // Replace with your listener ARN
+            listenerArn: 'arn:aws:elasticloadbalancing:us-west-2:123456789012:listener/app/external-alb/xxxxxxxxxxxxxxxx/yyyyyyyyyyyyyyyy', // Replace with your external listener ARN
             securityGroup: albSecurityGroup,
         });
 
         // Import existing internal HTTPS listener by ARN
         const internalListener = ApplicationListener.fromApplicationListenerAttributes(this, 'InternalListener', {
-            listenerArn: 'arn:aws:elasticloadbalancing:us-west-2:202942626335:listener/app/devservices-alb-internal/bb5098cbe8411607/a27cc327c491726c',
+            listenerArn: 'arn:aws:elasticloadbalancing:us-west-2:123456789012:listener/app/internal-alb/yyyyyyyyyyyyyyyy/zzzzzzzzzzzzzzzz', // Replace with your internal listener ARN
             securityGroup: albSecurityGroup,
         });
         
         // Import hosted zones for SSL certificate validation
         const externalHostedZone = HostedZone.fromHostedZoneAttributes(this, 'ExternalHostedZone', {
-            hostedZoneId: 'Z2HVZ9Z5E55QWS',
-            zoneName: 'natacs.aero',
+            hostedZoneId: 'ZXXXXXXXXXXXXX', // Replace with your external hosted zone ID
+            zoneName: 'example.com', // Replace with your domain
         });
 
         const internalHostedZone = HostedZone.fromHostedZoneAttributes(this, 'InternalHostedZone', {
-            hostedZoneId: 'Z026254115IJCN3QIIBDW',
-            zoneName: 'devservices-internal.natacs.aero',
+            hostedZoneId: 'ZYYYYYYYYYYYYYY', // Replace with your internal hosted zone ID
+            zoneName: 'internal.example.com', // Replace with your internal domain
         });
 
         // Create SSL certificates - use external ALB for validation since internal ALB can't reach internet
         const externalCertificate = new Certificate(this, 'ExternalCertificate', {
-            domainName: 'temporal.devservices.natacs.aero',
+            domainName: 'temporal.example.com', // Replace with your external domain
             validation: CertificateValidation.fromDns(externalHostedZone),
         });
 
         // Internal certificate: Create certificate for internal domain but validate via external ALB
         // Since internal ALB can't reach internet, we validate this certificate using external resources
         const internalCertificate = new Certificate(this, 'InternalCertificate', {
-            domainName: 'temporal.devservices-internal.natacs.aero',
+            domainName: 'temporal.internal.example.com', // Replace with your internal domain
             // Use external hosted zone for validation since internal ALB can't reach internet for validation
             validation: CertificateValidation.fromDns(externalHostedZone),
         });
@@ -146,7 +146,7 @@ export class TemporalWebLoadBalancer extends Construct {
             listener: externalListener,
             priority: 200, // Use high priority to avoid conflicts with existing rules
             conditions: [
-                ListenerCondition.hostHeaders(['temporal.devservices.natacs.aero']),
+                ListenerCondition.hostHeaders(['temporal.example.com']), // Replace with your external domain
             ],
             action: ListenerAction.forward([externalTargetGroup]),
         });
@@ -155,7 +155,7 @@ export class TemporalWebLoadBalancer extends Construct {
             listener: internalListener,
             priority: 200,
             conditions: [
-                ListenerCondition.hostHeaders(['temporal.devservices-internal.natacs.aero']),
+                ListenerCondition.hostHeaders(['temporal.internal.example.com']), // Replace with your internal domain
             ],
             action: ListenerAction.forward([internalTargetGroup]),
         });
@@ -178,17 +178,17 @@ export class TemporalWebLoadBalancer extends Construct {
         ];
 
         // Create Route53 A records to point domains to the ALBs
-        // External: temporal.devservices.natacs.aero -> External ALB
+        // External: temporal.example.com -> External ALB
         new ARecord(this, 'ExternalDnsRecord', {
             zone: externalHostedZone,
-            recordName: 'temporal.devservices',
+            recordName: 'temporal', // Creates temporal.example.com
             target: RecordTarget.fromAlias(new LoadBalancerTarget(externalAlb)),
         });
 
-        // Internal: temporal.devservices-internal.natacs.aero -> Internal ALB
+        // Internal: temporal.internal.example.com -> Internal ALB
         new ARecord(this, 'InternalDnsRecord', {
             zone: internalHostedZone,
-            recordName: 'temporal',
+            recordName: 'temporal', // Creates temporal.internal.example.com
             target: RecordTarget.fromAlias(new LoadBalancerTarget(internalAlb)),
         });
 

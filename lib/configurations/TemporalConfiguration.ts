@@ -211,7 +211,7 @@ const baseTemporalConfiguration = {
         status: 'disabled',
     },
     publicClient: {
-        hostPort: 'abcdef.mydomain.com-frontend:7233',
+        hostPort: 'temporal-frontend:7233', // Generic frontend service reference
     },
     dynamicConfigClient: {
         filepath: '/etc/temporal/dynamic_config/dynamic_config.yaml',
