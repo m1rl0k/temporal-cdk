@@ -44,7 +44,7 @@
         "colors": "^1.4.0",
         "concurrently": "^7.6.0",
         "constructs": "^10.4.2",
-        "esbuild": "^0.14.54",
+        "esbuild": "^0.25.0",
         "eslint": "^8.57.1",
         "eslint-config-prettier": "^8.10.0",
         "prettier": "^2.8.8",
