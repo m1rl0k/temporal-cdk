@@ -30,7 +30,7 @@
         "nopt": "^5.0.0",
         "ts-loader": "^9.5.2",
         "wait-port": "^0.2.14",
-        "webpack": "^5.99.9",
+        "webpack": "^5.105.0",
         "yaml": "^1.10.2"
     },
     "devDependencies": {
